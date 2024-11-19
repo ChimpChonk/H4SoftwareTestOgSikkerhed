@@ -44,7 +44,7 @@ namespace SoftwareTest
             {
                 options.AddPolicy("RequireAdministratorRole", policy =>
                 {
-                    policy.RequireRole("Administrator");
+                    policy.RequireRole("Admin");
                 });
 
             });
