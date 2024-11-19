@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using SoftwareTest.Components;
 using SoftwareTest.Components.Account;
 using SoftwareTest.Data;
+using Microsoft.EntityFrameworkCore.Sqlite;
 
 namespace SoftwareTest
 {
@@ -12,6 +13,7 @@ namespace SoftwareTest
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            var connectionString = string.Empty;
 
             // Add services to the container.
             builder.Services.AddRazorComponents()
@@ -29,9 +31,21 @@ namespace SoftwareTest
                 })
                 .AddIdentityCookies();
 
-            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-            builder.Services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(connectionString));
+            if (OperatingSystem.IsLinux())
+            {
+                connectionString = builder.Configuration.GetConnectionString("MockConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+                builder.Services.AddDbContext<ApplicationDbContext>(options =>
+                    options.UseSqlite(connectionString));
+                builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+            }
+            else
+            {
+                connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+                builder.Services.AddDbContext<ApplicationDbContext>(options =>
+                    options.UseSqlServer(connectionString));
+                builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+            }
+
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
             builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
